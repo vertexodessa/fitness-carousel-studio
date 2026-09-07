@@ -14,26 +14,26 @@
 <p id="msg">Handing the authorization code back to the local tool...</p>
 <code id="code" hidden></code>
 <script>
-  // TikTok redirects here after the user authorizes the app. The tool itself runs on the
-  // owner's computer, so forward the query string to its local listener; if it is not
-  // running, show the code so it can be pasted manually.
+  // TikTok redirects here after the user authorizes the app. The tool runs on the owner's
+  // computer and listens on localhost:8765, so forward the query string there. The code is
+  // shown right away so it can be pasted manually if the local tool is not running.
   var q = window.location.search;
-  var local = 'http://localhost:8765/callback' + q;
   var params = new URLSearchParams(q);
+  var msg = document.getElementById('msg');
+  var el = document.getElementById('code');
   if (params.get('code')) {
-    var img = new Image();
-    img.onload = function () { window.location.replace(local); };
-    img.onerror = function () {
-      document.getElementById('msg').textContent = 'The local tool is not running. Copy this code into the terminal:';
-      var el = document.getElementById('code');
-      el.textContent = params.get('code');
-      el.hidden = false;
-    };
-    img.src = 'http://localhost:8765/ping?' + Date.now();
+    var local = 'http://localhost:8765/callback' + q;
+    msg.innerHTML = 'Authorization code (paste it into the terminal if the next step does not open): ';
+    el.textContent = params.get('code');
+    el.hidden = false;
+    var a = document.createElement('p');
+    a.innerHTML = 'Forwarding to the local tool in a moment, or <a href="' + local + '">click here</a>.';
+    document.body.appendChild(a);
+    setTimeout(function () { window.location.replace(local); }, 1500);
   } else if (params.get('error')) {
-    document.getElementById('msg').textContent = 'Authorization failed: ' + params.get('error_description') || params.get('error');
+    msg.textContent = 'Authorization failed: ' + (params.get('error_description') || params.get('error'));
   } else {
-    document.getElementById('msg').textContent = 'Nothing to do here. Start the sign-in from the tool.';
+    msg.textContent = 'Nothing to do here. Start the sign-in from the tool.';
   }
 </script>
 </body>
